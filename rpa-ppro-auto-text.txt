@@ -1,0 +1,40 @@
+/# あらかじめPremiere Proで編集したいプロジェクトを開いておく。
+また、以下の作業をやってから行うこと。
+・音声を区切る
+・コピーしたいテキストクリップを作成#/
+UIAutomation.FocusWindow.FocusByTitleClass Title: $'''''' Class: $'''Premiere Pro'''
+# 仕分けされた台本のJSONファイルを選択
+File.ReadTextFromFile.ReadText File: $'''C:\\Users\\aknr1\\MyApps\\PPro\\#20\\20demo.json''' Encoding: File.TextFileEncoding.UTF8 Content=> FileContents
+Variables.ConvertJsonToCustomObject Json: FileContents CustomObject=> JsonAsCustomObject
+WAIT 1
+LOOP LoopIndex FROM 0 TO JsonAsCustomObject.Count - 1 STEP 1
+    # タイムラインバーにマウスが来るように位置を設定
+    MouseAndKeyboard.SendMouseClick.ClickAt ClickType: MouseAndKeyboard.MouseClickType.LeftClick MillisecondsDelay: 0 X: 1439 Y: 784 RelativeTo: MouseAndKeyboard.PositionRelativeTo.ActiveWindow MovementStyle: MouseAndKeyboard.MovementStyle.Instant
+    MouseAndKeyboard.SendKeys.FocusAndSendKeys TextToSend: $'''{Home}''' DelayBetweenKeystrokes: 10 SendTextAsHardwareKeys: False
+    # コピー用のテキストクリップにマウスが来るように設定
+    MouseAndKeyboard.SendMouseClick.ClickAt ClickType: MouseAndKeyboard.MouseClickType.LeftClick MillisecondsDelay: 0 X: 1117 Y: 962 RelativeTo: MouseAndKeyboard.PositionRelativeTo.ActiveWindow MovementStyle: MouseAndKeyboard.MovementStyle.Instant
+    MouseAndKeyboard.SendKeys.FocusAndSendKeys TextToSend: $'''{Control}({C}){End}{Control}({V})''' DelayBetweenKeystrokes: 50 SendTextAsHardwareKeys: False
+    MouseAndKeyboard.SendKeys.FocusAndSendKeys TextToSend: $'''{Left}''' DelayBetweenKeystrokes: 10 SendTextAsHardwareKeys: False
+    # テキストが変更できる場所（プレビュー上のテキスト部分）にマウスが来るように位置を設定
+    MouseAndKeyboard.SendMouseClick.ClickAt ClickType: MouseAndKeyboard.MouseClickType.DoubleClick MillisecondsDelay: 0 X: 1246 Y: 229 RelativeTo: MouseAndKeyboard.PositionRelativeTo.ActiveWindow MovementStyle: MouseAndKeyboard.MovementStyle.Instant
+    Text.SplitText.SplitWithDelimiter Text: JsonAsCustomObject[LoopIndex].text CustomDelimiter: $'''\\s''' IsRegEx: True Result=> TextList
+    IF TextList.Count > 1 THEN
+        Text.AppendLine Text: TextList[0] LineToAppend: TextList[1] Result=> Result
+    ELSE
+        SET Result TO TextList[0]
+    END
+    Clipboard.SetText Text: Result
+    MouseAndKeyboard.SendKeys.FocusAndSendKeys TextToSend: $'''{Control}({V})''' DelayBetweenKeystrokes: 10 SendTextAsHardwareKeys: False
+END
+Display.ShowMessageDialog.ShowMessage Title: $'''完了''' Message: $'''テキストの生成が完了しました''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: False ButtonPressed=> ButtonPressed
+
+# [ControlRepository][PowerAutomateDesktop]
+
+{
+  "ControlRepositorySymbols": [],
+  "ImageRepositorySymbol": {
+    "Name": "imgrepo",
+    "ImportMetadata": {},
+    "Repository": "{\r\n  \"Folders\": [],\r\n  \"Images\": [],\r\n  \"Version\": 1\r\n}"
+  }
+}
